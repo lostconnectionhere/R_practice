@@ -1,4 +1,4 @@
-data <- ("iris")
+data("iris")
 head(iris)
 
 x=iris[,3:4]
