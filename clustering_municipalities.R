@@ -1,11 +1,19 @@
 library(tidyverse)
 library(tidyr)
 library(dplyr)
+library(readxl)
 
 #Inlezen dataset + analyseren
 kerncijfers <- read.csv2('data/regionale_kerncijfers_subset.csv', sep=";")
-print(kerncijfers)
+gemeenten_namen <- read_excel('data/gemeenten_namen2020.xlsx') 
 
+print(kerncijfers)
+print(gemeenten_namen)
+
+# Voeg de gemeentenamen van dataset gemeenten_namen toe aan kerncijfers
+kerncijfers <- kerncijfers %>% mutate(Gemeentenaam = gemeenten_namen$Gemeentenaam[match(kerncijfers$RegioS, gemeenten_namen$GemeentecodeGM)])
+
+print(kerncijfers)
 colnames(kerncijfers) 
 
 
@@ -25,12 +33,13 @@ colSums(is.na(kerncijfers_2022))
 # Categorische kolommen verwijderen, ID, RegioS & Perioden
 kerncijfers_2022 <- kerncijfers_2022[, !names(kerncijfers_2022) %in% c("ID")]
 kerncijfers_2022 <- kerncijfers_2022[, !names(kerncijfers_2022) %in% c("Perioden")]
+kerncijfers_2022 <- kerncijfers_2022[, !names(kerncijfers_2022) %in% c("RegioS")]
 
 # RegioS kolom verplaatsen naar rijnummer
-row.names(kerncijfers_2022) <- kerncijfers_2022$RegioS
+row.names(kerncijfers_2022) <- kerncijfers_2022$Gemeentenaam
 
-# RegioS kolom verwijdered
-kerncijfers_2022 <- kerncijfers_2022[, !names(kerncijfers_2022) %in% c("RegioS")]
+# Gemeentenaam kolom verwijdered
+kerncijfers_2022 <- kerncijfers_2022[, !names(kerncijfers_2022) %in% c("Gemeentenaam")]
 
 # Controleren of dataset alleen uit numerieke waarden bestaat
 summary(kerncijfers_2022)
