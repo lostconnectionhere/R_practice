@@ -4,3 +4,8 @@
 .Ruserdata
 .DS_Store
 data/.DS_Store
+
+
+# Ignore .RData and .Rhistory files
+*.RData
+*.Rhistory
