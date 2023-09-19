@@ -56,6 +56,9 @@ head(df_scaled)
 km.out <- kmeans(df_scaled, centers = 5, nstart = 20)
 km.out
 
+# clustered_df <- cbind(df_scaled, Cluster = km.out$cluster)
+clustered_df <- data.frame(df_scaled, Cluster = km.out$cluster)
+
 # Max clusters op 10
 n_clusters <- 10
 
@@ -90,5 +93,32 @@ scree_plot +
 
 # Plot de 5 clusters
 fviz_cluster(km.out, df_scaled, ellipse.type = "norm")
+
+# Weergeef bijv. alle gemeentes die in cluster 1, 5 zitten
+names(clustered_df)
+unique(clustered_df$Cluster)
+cluster_5 <- subset(clustered_df, Cluster == 5)
+cluster_1 <- subset(clustered_df, Cluster == 1)
+print(cluster_1)
+print(cluster_5)
+
+#Voeg kolom met cluster toe aan niet geschaalde data
+# Voeg de dataframes aan elkaar toe op basis vaan de gemeentenaam
+df$Gemeentenaam_1 <- rownames(df)
+rownames(df) <- NULL
+clustered_df$Gemeentenaam_1 <- rownames(clustered_df)
+rownames(df) <- NULL
+
+names(df)
+names(clustered_df)
+
+# Merge the data frames based on Gemeentenaam_1
+final_df <- merge(df, clustered_df[c("Gemeentenaam_1", "Cluster")], by="Gemeentenaam_1", all.x=TRUE)
+
+# View the merged data frame
+View(final_df)
+
+# Display column names of the merged data frame
+names(final_df)
 
 
