@@ -17,10 +17,6 @@ data_sub2 <- subset(data_sub2, ID != 0)
 #aggregrate op basis van waarde in de kolom Gemeentenaam
 # aggregate(~Gemeentenaam_1, data = data_sub1, FUN=sum)
 data_sub1_agg <- ddply(data_sub1, "Gemeentenaam_1", numcolwise(sum))
-
-
-
-
 print(data_sub1_agg)
 
 data_sub2_agg <- ddply(data_sub2, "Gemeentenaam_1", numcolwise(sum))
