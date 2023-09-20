@@ -25,18 +25,22 @@ row.names(data_md) <- data_md$Gemeenten
 # Gemeentenaam kolom verwijdered
 data_md <- data_md[, !names(data_md) %in% c("Gemeenten")]
 
+#Subset zonder de "drugs" kolommen
+sub_data_md <- data_md[,c('Bevolkingsdichtheid','Bevolking.vrouwen.totaal',"Bevolking.mannen.totaal", "Bevolking.10.14.jaar",  "Bevolking.15.24.jaar")]
+names(sub_data_md)
+
 # voor reproduceerbaarheid seed 123 gekozen
 set.seed(123)
 
 # data scalen --> zodat clusteren niet afhankelijk is van een variabele
-data_md_scaled <- scale(data_md)
-head(data_md_scaled)
+sub_data_md_scaled <- scale(sub_data_md)
+head(sub_data_md_scaled)
 
-km.out <- kmeans(data_md_scaled, centers = 5, nstart = 20)
+km.out <- kmeans(sub_data_md_scaled, centers = 5, nstart = 20)
 km.out
 
 # clustered_df <- cbind(df_scaled, Cluster = km.out$cluster)
-clustered_df <- data.frame(data_md_scaled, Cluster = km.out$cluster)
+clustered_df <- data.frame(sub_data_md_scaled, Cluster = km.out$cluster)
 
 # Max clusters op 10
 n_clusters <- 5
@@ -72,8 +76,8 @@ scree_plot +
     col = c(rep('#000000',4),'#FF0000', rep('#000000', 5))
   )
 
-# Plot de 5 clusters
-fviz_cluster(km.out, data_md_scaled, ellipse.type = "norm")
+# Plot de 5 clusters -> smooth ellipse.type = "norm"
+fviz_cluster(km.out, sub_data_md_scaled, ellipse.type = "norm")
 
 # Weergeef bijv. alle gemeentes die in cluster 1, 5 zitten
 names(clustered_df)
@@ -82,3 +86,22 @@ cluster_5 <- subset(clustered_df, Cluster == 5)
 cluster_1 <- subset(clustered_df, Cluster == 1)
 print(cluster_1)
 print(cluster_5)
+
+#Voeg kolom met cluster toe aan niet geschaalde data
+# Voeg de dataframes aan elkaar toe op basis vaan de gemeentenaam
+data_md$Gemeenten <- rownames(data_md)
+rownames(data_md) <- NULL
+clustered_df$Gemeenten <- rownames(clustered_df)
+rownames(data_md) <- NULL
+
+names(data_md)
+names(clustered_df)
+
+# Merge the data frames based on Gemeentenaam_1
+final_df <- merge(data_md, clustered_df[c("Gemeenten", "Cluster")], by="Gemeenten", all.x=TRUE)
+
+# View the merged data frame
+View(final_df)
+
+# Display column names of the merged data frame
+names(final_df)
