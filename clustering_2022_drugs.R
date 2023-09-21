@@ -77,7 +77,7 @@ scree_plot +
   )
 
 # Plot de 5 clusters -> smooth ellipse.type = "norm"
-fviz_cluster(km.out, sub_data_md_scaled, ellipse.type = "norm")
+fviz_cluster(km.out, sub_data_md_scaled)
 
 # Weergeef bijv. alle gemeentes die in cluster 1, 5 zitten
 names(clustered_df)
