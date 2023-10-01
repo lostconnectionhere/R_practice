@@ -25,9 +25,6 @@ print(missing_count1)
 print(missing_count2)
 print(missing_count3)
 
-# Kopie van df maken als test
-df1_char_to_num <- df1  
-
 # Identify the column you want to exclude (e.g., "Name")
 columns_to_exclude <- c("Gemeentenaam_1", "ID", "WijkenEnBuurten")
 
@@ -59,8 +56,18 @@ print(df2)
 print(df3)
 
 # voeg de dataframes samen met een inner join
-innerJoinDf <- inner_join(df1, df2, df3,by="ID")
-view(innerJoinDf)
+# innerJoinDf <- inner_join(df1, df2, df3,by="ID")
+# view(innerJoinDf)
+
+# You can join df1 and df2 first
+innerJoinDf1 <- inner_join(df1, df2, by = "ID")
+
+# Then, join the result with df3
+innerJoinDf <- inner_join(innerJoinDf1, df3, by = "ID")
+
+# View the resulting inner-joined data frame
+View(innerJoinDf)
+
 
 # verwijder alle rijen die geen Gemeente zijn, behalve de rij met waardes voor NL
 # De rijen filteren gebaserd op de gekozen regel
@@ -69,3 +76,9 @@ df_filtered <- subset(innerJoinDf, grepl("^GM", WijkenEnBuurten.x)| WijkenEnBuur
 # Print the filtered data frame
 print(df_filtered)
 
+#verwijder kolommen
+new_df <- df_filtered[, !names(df_filtered) %in% c("ID", "WijkenEnBuurten.y", "Gemeentenaam_1.y", "WijkenEnBuurten", "Gemeentenaam_1","AfstandTotSchool_109", "ScholenBinnen3Km_110", "PersonenPerSoortUitkeringWW_85", 
+                                                   "PersonenPerSoortUitkeringAOW_86", "GemGestandaardiseerdInkomenVanHuish_75", "PersonenPerSoortUitkeringBijstand_83", "PersonenPerSoortUitkeringAO_84", "OpleidingsniveauMiddelbaar_65",
+                                                   "OpleidingsniveauMiddelbaar_65", "OpleidingsniveauHoog_66", "Nettoarbeidsparticipatie_67", "PercentageWerknemers_68", "PercentageZelfstandigen_69", "OpleidingsniveauLaag_64")]
+names(new_df)
+print(new_df)
