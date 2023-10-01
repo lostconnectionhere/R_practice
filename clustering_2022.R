@@ -31,21 +31,7 @@ df1_char_to_num <- df1
 # Identify the column you want to exclude (e.g., "Name")
 columns_to_exclude <- c("Gemeentenaam_1", "ID", "WijkenEnBuurten")
 
-# # Vervang character kolommen voor numerieke, behalve de kolommen die hierboven staan
-# for (col_name in colnames(df1_char_to_num)) {
-#   if (col_name %in% columns_to_exclude) {
-#     next
-#   }
-#   
-#   if (is.character(df1_char_to_num[[col_name]])) {
-#     df1_char_to_num[[col_name]] <- as.numeric(df1_char_to_num[[col_name]])
-#   }
-# }
-# 
-# summary(df1_char_to_num)
-
-
-# Functie die character kolommen veranders naar numerieke, behalve een aantal kolommen
+# Functie die char" kolommen verandert naar numerieke, behalve de kolommen die "char" moeten blijven
 convert_and_exclude <- function(df, columns_to_exclude) {
   for (col_name in colnames(df)) {
     if (col_name %in% columns_to_exclude) {
@@ -62,12 +48,24 @@ convert_and_exclude <- function(df, columns_to_exclude) {
 # De kolommen die uitgezonderd moeten worden
 columns_to_exclude <- c("Gemeentenaam_1", "ID", "WijkenEnBuurten")
 
-# Apply the function to each data frame
+# Functie toepassen op iedere df
 df1 <- convert_and_exclude(df1, columns_to_exclude)
 df2 <- convert_and_exclude(df2, columns_to_exclude)
 df3 <- convert_and_exclude(df3, columns_to_exclude)
 
-# Print the modified data frames
+# Controleer of het goed is gegaan
 print(df1)
 print(df2)
 print(df3)
+
+# voeg de dataframes samen met een inner join
+innerJoinDf <- inner_join(df1, df2, df3,by="ID")
+view(innerJoinDf)
+
+# verwijder alle rijen die geen Gemeente zijn, behalve de rij met waardes voor NL
+# De rijen filteren gebaserd op de gekozen regel
+df_filtered <- subset(innerJoinDf, grepl("^GM", WijkenEnBuurten.x)| WijkenEnBuurten.x == "NL00")
+
+# Print the filtered data frame
+print(df_filtered)
+
