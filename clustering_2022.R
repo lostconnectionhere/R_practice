@@ -3,6 +3,7 @@ library(dplyr)
 library(plyr)
 library(ggplot2)
 library(factoextra)
+library(plotly)
 
 #Inlezen dataset uit 2022
 df1 <- read.csv2('data/kerncijfers_22_pt1.csv', sep=";")
@@ -135,3 +136,13 @@ unique(clustered_df$Cluster)
 cluster_1 <- subset(clustered_df, Cluster == 1)
 print(cluster_1)
 
+# Perform PCA to reduce dimensionality to 3 components
+pca <- prcomp(new_df_scaled, center = TRUE, scale. = TRUE)
+pca_data <- as.data.frame(pca$x[, 1:3])  # Keep the first three components
+
+# Add cluster information
+pca_data$Cluster <- as.factor(km.out$cluster)
+
+# Create a 3D scatterplot
+plot_ly(data = pca_data, x = ~PC1, y = ~PC2, z = ~PC3, color = ~Cluster, type = "scatter3d", mode = "markers") %>%
+  layout(scene = list(title = "3D Scatterplot with Clusters (PCA)"))
