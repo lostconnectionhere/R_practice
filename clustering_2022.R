@@ -14,7 +14,6 @@ summary(df1)
 summary(df2)
 summary(df3)
 
-
 # Hoeveel missende waarden per kolom
 missing_count1 <- sapply(df1, function(x) sum(is.na(x)))
 missing_count2 <- sapply(df2, function(x) sum(is.na(x)))
@@ -55,19 +54,15 @@ print(df1)
 print(df2)
 print(df3)
 
-# voeg de dataframes samen met een inner join
-# innerJoinDf <- inner_join(df1, df2, df3,by="ID")
-# view(innerJoinDf)
 
-# You can join df1 and df2 first
+# Inner join df1 met df2 
 innerJoinDf1 <- inner_join(df1, df2, by = "ID")
 
-# Then, join the result with df3
+# Vervolgens, het resultaat joinen met df 3
 innerJoinDf <- inner_join(innerJoinDf1, df3, by = "ID")
 
 # View the resulting inner-joined data frame
-View(innerJoinDf)
-
+#View(innerJoinDf)
 
 # verwijder alle rijen die geen Gemeente zijn, behalve de rij met waardes voor NL
 # De rijen filteren gebaserd op de gekozen regel
@@ -76,9 +71,67 @@ df_filtered <- subset(innerJoinDf, grepl("^GM", WijkenEnBuurten.x)| WijkenEnBuur
 # Print the filtered data frame
 print(df_filtered)
 
-#verwijder kolommen
-new_df <- df_filtered[, !names(df_filtered) %in% c("ID", "WijkenEnBuurten.y", "Gemeentenaam_1.y", "WijkenEnBuurten", "Gemeentenaam_1","AfstandTotSchool_109", "ScholenBinnen3Km_110", "PersonenPerSoortUitkeringWW_85", 
+#verwijder kolommen waarin bijna alle rijen NA zijn
+new_df <- df_filtered[, !names(df_filtered) %in% c("ID", "WijkenEnBuurten.y", "Gemeentenaam_1.y", "WijkenEnBuurten", "WijkenEnBuurten.x", "Gemeentenaam_1","AfstandTotSchool_109", "ScholenBinnen3Km_110", "PersonenPerSoortUitkeringWW_85", 
                                                    "PersonenPerSoortUitkeringAOW_86", "GemGestandaardiseerdInkomenVanHuish_75", "PersonenPerSoortUitkeringBijstand_83", "PersonenPerSoortUitkeringAO_84", "OpleidingsniveauMiddelbaar_65",
                                                    "OpleidingsniveauMiddelbaar_65", "OpleidingsniveauHoog_66", "Nettoarbeidsparticipatie_67", "PercentageWerknemers_68", "PercentageZelfstandigen_69", "OpleidingsniveauLaag_64")]
 names(new_df)
 print(new_df)
+
+# Gemeentenaam kolom verplaatsen naar rijnummer
+row.names(new_df) <- new_df$Gemeentenaam_1.x
+
+# Gemeentenaam kolom verwijdered
+new_df <- new_df[, !names(new_df) %in% c("Gemeentenaam_1.x")]
+
+# voor reproduceerbaarheid seed 123 gekozen
+set.seed(123)
+
+# data scalen --> zodat clusteren niet afhankelijk is van een variabele
+new_df_scaled <- scale(new_df)
+head(new_df_scaled)
+
+# Max clusters op 10
+n_clusters <- 10
+
+# Sum of squares initialiseren
+wss <- numeric(n_clusters)
+
+n <- 10  # Change this to 10 for 10 clusters
+
+# De verschillende aantallen clusters analyseren
+for (i in 1:n) {
+  # fit het model: km.out
+  km.out <- kmeans(new_df_scaled, centers = i, nstart = 20)  # Change centers to i
+  # within cluster sum of squares
+  wss[i] <- km.out$tot.withinss
+}
+
+# scree plot
+wss_df <- tibble(clusters = 1:n, wss = wss)
+
+scree_plot <- ggplot(wss_df, aes(x = clusters, y = wss, group = 1)) +
+  geom_point(size = 4) +
+  geom_line() +
+  scale_x_continuous(breaks = c(2, 4, 6, 8, 10)) +
+  xlab('Number of clusters')
+
+scree_plot
+
+scree_plot +
+  geom_hline(
+    yintercept = wss, 
+    linetype = 'dashed', 
+    col = c(rep('#000000', 9), '#FF0000')
+  )
+
+# Plot the 10 clusters -> smooth ellipse.type = "norm"
+km.out <- kmeans(new_df_scaled, centers = 10, nstart = 20)  # Change centers to 10
+fviz_cluster(km.out, new_df_scaled)
+
+# Geef weer bijv. alle gemeentes die in cluster 1
+names(clustered_df)
+unique(clustered_df$Cluster)
+cluster_1 <- subset(clustered_df, Cluster == 1)
+print(cluster_1)
+
