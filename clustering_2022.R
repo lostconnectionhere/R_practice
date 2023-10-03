@@ -127,14 +127,35 @@ scree_plot +
   )
 
 # Plot the 10 clusters -> smooth ellipse.type = "norm"
-km.out <- kmeans(new_df_scaled, centers = 10, nstart = 20)  # Change centers to 10
+km.out <- kmeans(new_df_scaled, centers = 10, nstart = 20) 
 fviz_cluster(km.out, new_df_scaled)
 
-# Geef weer bijv. alle gemeentes die in cluster 1
-names(clustered_df)
-unique(clustered_df$Cluster)
-cluster_1 <- subset(clustered_df, Cluster == 1)
-print(cluster_1)
+# Voeg de clusternummers toe aan een nieuwe kolom
+new_df$Cluster <- km.out$cluster
+
+# Weergeef de nieuwe df met de clusters kolom
+head(new_df)
+
+# Vind de cluster met het minste aantal datapunten (rijen) 
+min_count_cluster <- which.min(table(new_df$Cluster))
+
+# Filter de df om alleen de rijen (Gemeenten) te zien met het minste aantal datapunten 
+cluster_data <- new_df[new_df$Cluster == min_count_cluster, ]
+
+# Laat de gemeentes zien 
+print(cluster_data)
+
+# # Geef weer bijv. alle gemeentes die in cluster 1, of een andere cluster
+# cluster_assignments <- km.out$cluster
+# 
+# # Vind de indices van datapunten in Cluster 1
+# cluster_1_indices <- which(cluster_assignments == 10)
+# 
+# # Haal de datapunten in Cluster 1 op uit de geschaalde data
+# data_in_cluster_1 <- new_df_scaled[cluster_1_indices, ]
+# 
+# # Toon de datapunten in Cluster 1
+# print(data_in_cluster_1)
 
 # PCA om dimensionaliteit te verminderen tot 3 componenten
 pca <- prcomp(new_df_scaled, center = TRUE, scale. = TRUE)
@@ -146,4 +167,7 @@ pca_data$Cluster <- as.factor(km.out$cluster)
 # Creeër 3D scatterplot
 plot_ly(data = pca_data, x = ~PC1, y = ~PC2, z = ~PC3, color = ~Cluster, type = "scatter3d", mode = "markers+text", text = rownames(pca_data), textposition = 'top center') %>%
   layout(scene = list(title = "3D Scatterplot with Clusters (PCA)"))
+
+
+
 
