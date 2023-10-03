@@ -168,6 +168,26 @@ pca_data$Cluster <- as.factor(km.out$cluster)
 plot_ly(data = pca_data, x = ~PC1, y = ~PC2, z = ~PC3, color = ~Cluster, type = "scatter3d", mode = "markers+text", text = rownames(pca_data), textposition = 'top center') %>%
   layout(scene = list(title = "3D Scatterplot with Clusters (PCA)"))
 
+# Bereken correlaties van alle paren van de kolommen 
+correlation_matrix <- cor(new_df)
 
+# Print de correlatie matrix
+print(correlation_matrix)
+
+# Print de correlatie matrix met drie decimalen
+print(correlation_matrix, digits = 3)
+
+# Sla de correlatie matrix op in een .csv bestand
+write.csv(correlation_matrix, file = "correlation_matrix.csv")
+
+# Set een correlatie "drempel" op 0.9
+threshold <- 0.9
+
+# Creeër een logische matrix met hoge correlaties
+high_correlations <- abs(correlation_matrix) > threshold
+
+# Weergeef de rij en kolom indices met hoge correlaties 
+high_correlation_pairs <- which(high_correlations, arr.ind = TRUE)
+print(high_correlation_pairs)
 
 
