@@ -55,7 +55,6 @@ print(df1)
 print(df2)
 print(df3)
 
-
 # Inner join df1 met df2 
 innerJoinDf1 <- inner_join(df1, df2, by = "ID")
 
@@ -131,7 +130,8 @@ km.out <- kmeans(new_df_scaled, centers = 10, nstart = 20)
 fviz_cluster(km.out, new_df_scaled)
 
 # Voeg de clusternummers toe aan een nieuwe kolom
-new_df$Cluster <- km.out$cluster
+df_with_cluster <- new_df
+df_with_cluster$Cluster <- km.out$cluster
 
 # Weergeef de nieuwe df met de clusters kolom
 head(new_df)
@@ -189,5 +189,72 @@ high_correlations <- abs(correlation_matrix) > threshold
 # Weergeef de rij en kolom indices met hoge correlaties 
 high_correlation_pairs <- which(high_correlations, arr.ind = TRUE)
 print(high_correlation_pairs)
+
+#Euclidean Distance
+# Bereken de Euclidean distance
+euclidean_dist <- dist(new_df)
+
+# Print de Euclidean distance matrix
+print(euclidean_dist)
+
+# # Calculate summary statistics for the distances
+# min_distance <- min(euclidean_dist)
+# max_distance <- max(euclidean_dist)
+# mean_distance <- mean(euclidean_dist)
+# median_distance <- median(euclidean_dist)
+# 
+# # Print the summary statistics
+# cat("Min Distance:", min_distance, "\n")
+# cat("Max Distance:", max_distance, "\n")
+# cat("Mean Distance:", mean_distance, "\n")
+# cat("Median Distance:", median_distance, "\n")
+# 
+# # Convert the distance matrix to a data frame (optional, but can make the output more readable)
+# distance_df <- as.data.frame(as.matrix(euclidean_dist))
+# 
+# # Define the file path where you want to save the CSV file
+# file_path <- "euclidean_distances.csv"
+
+# Top 10 kortste afstanden om te selecteren
+top_n <- 10
+
+# Zet het 'euclidean_dist'-object om naar een matrix
+euclidean_mat <- as.matrix(euclidean_dist)
+
+# Haal de rijnamen op
+row_names <- row.names(euclidean_mat)
+
+# Een lijst om de topafstanden en hun overeenkomstige rijnamen op te slaan
+top_distances_with_names <- vector("list", length = nrow(euclidean_mat))
+
+# Loop door elke rij om de topafstanden te vinden
+for (i in 1:nrow(euclidean_mat)) {
+  # Haal de Euclidische afstanden op voor de huidige rij
+  row_distances <- euclidean_mat[i, ]
+  
+  # Sluit de afstand tot de huidige rij uit (nul afstand)
+  row_distances <- row_distances[-i]
+  
+  # Vind de indices van de topafstanden
+  top_indices <- order(row_distances)[1:top_n]
+  
+  # Haal de overeenkomstige rijnamen op voor de topafstanden
+  top_row_names <- row_names[top_indices]
+  
+  # Sla de topafstanden en hun overeenkomstige rijnamen op in de lijst
+  top_distances_with_names[[i]] <- data.frame(RowName = top_row_names, Distance = row_distances[top_indices])
+}
+
+# Print de top kortste Eucliden afstanden met de rij-namen (Gemeenten) for iedere Gemeente
+for (i in 1:length(top_distances_with_names)) {
+  cat("Row Name:", row_names[i], "\n")
+  print(top_distances_with_names[[i]], row.names = FALSE)
+  cat("\n")
+}
+
+
+
+
+
 
 
