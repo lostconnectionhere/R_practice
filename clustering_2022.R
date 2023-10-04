@@ -252,9 +252,77 @@ for (i in 1:length(top_distances_with_names)) {
   cat("\n")
 }
 
+# Check the current row names in your dataset
+current_row_names <- rownames(euclidean_mat)
+print(current_row_names)
+
+cat("Row Names in Dataset:\n")
+cat(paste0("'", rownames(euclidean_mat), "'\n"))
 
 
 
+# Specify the target row name (with or without spaces)
+target_row_name <- "Aa en Hunze                             "
+
+# Clean up the target row name by removing leading and trailing spaces
+target_row_name <- trimws(target_row_name)
+
+# Convert the 'euclidean_dist' object to a matrix
+euclidean_mat <- as.matrix(euclidean_dist)
+
+# Get the row names
+row_names <- row.names(euclidean_mat)
+
+# Find the index of the target row
+target_row_index <- which(row_names == target_row_name)
+
+# Check if the target row name exists in the data
+if (length(target_row_index) == 0) {
+  cat("Row name not found: ", target_row_name, "\n")
+} else {
+  # Get the Euclidean distances for the target row
+  row_distances <- euclidean_mat[target_row_index, ]
+  
+  # Exclude the distance to the target row itself (zero distance)
+  row_distances <- row_distances[-target_row_index]
+  
+  # Find the indices of the top distances
+  top_indices <- order(row_distances)[1:10]
+  
+  # Get the corresponding row names for the top distances
+  top_row_names <- row_names[top_indices]
+  
+  # Print the top distances for the target row
+  cat("Row Name:", target_row_name, "\n")
+  print(data.frame(RowName = target_row_name, Distance = row_distances[top_indices], TopRowName = top_row_names), row.names = FALSE)
+}
 
 
+# Specify the target row name with leading/trailing spaces
+target_row_name <- "Aa en Hunze                             "
 
+# Clean up the target row name by removing leading and trailing spaces
+target_row_name <- trimws(target_row_name)
+
+# Convert the 'euclidean_dist' object to a matrix
+euclidean_mat <- as.matrix(euclidean_dist)
+
+# Get the row names
+row_names <- row.names(euclidean_mat)
+
+# Find the index of the target row
+target_row_index <- which(row_names == target_row_name)
+
+# Check if the target row name exists in the data
+if (length(target_row_index) == 0) {
+  cat("Row name not found: ", target_row_name, "\n")
+} else {
+  # The target row name was found
+  # Continue with your code to retrieve and print the top distances
+}
+
+
+class(target_row_name)
+
+cat("Row Names in Dataset:\n")
+cat(paste0("'", rownames(euclidean_mat), "'\n"))
