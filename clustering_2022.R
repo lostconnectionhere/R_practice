@@ -1,6 +1,6 @@
 #Benodigde libraries
-library(dplyr)
 library(plyr)
+library(dplyr)
 library(ggplot2)
 library(factoextra)
 library(plotly)
@@ -11,22 +11,56 @@ df2 <- read.csv2('data/kerncijfers_22_pt2.csv', sep=";")
 df3 <- read.csv2('data/kerncijfers_22_pt3.csv', sep=";")
 
 #Data analyseren
-summary(df1)
-summary(df2)
-summary(df3)
+head(df1)
+head(df2)
+head(df3)
+
+# Ter controle een kolom selecteren of er waardes zijn met een lege spatie voorafgaande de waarde
+# sum(startsWith(df2$OpleidingsniveauLaag_64, " "))
+# In 18002 gevallen zit er in ieder geval 1 spatie voorafgaande de waarde
+
+# Functie om leading en trailing spaties te verwijderen voor character- of factor-kolommen
+trim_character_or_factor <- function(df) {
+  df[] <- lapply(df, function(col) {
+    if (is.character(col) || is.factor(col)) {
+      return(trimws(as.character(col)))
+    } else {
+      return(col)
+    }
+  })
+  return(df)
+}
+
+# Pas de functie toe op je dataframes df1, df2, en df3
+df1 <- trim_character_or_factor(df1)
+df2 <- trim_character_or_factor(df2)
+df3 <- trim_character_or_factor(df3)
+
+# Controleren of het probleem is opgelost
+# sum(startsWith(df2$OpleidingsniveauLaag_64, " "))
+
+# Hoeveel punten bij iedere kolom aanwezig
+apply(df1, 2,  function(col) sum(col == '.'))
+apply(df2, 2,  function(col) sum(col == '.'))
+apply(df3, 2,  function(col) sum(col == '.'))
+
+# Alle punten omzetten in NA's
+df1 <- df1 %>% mutate(across(.cols = everything(), ~replace(., . == '.', NA)))
+df2 <- df2 %>% mutate(across(.cols = everything(), ~replace(., . == '.', NA)))
+df3 <- df3 %>% mutate(across(.cols = everything(), ~replace(., . == '.', NA)))
 
 # Hoeveel missende waarden per kolom
-missing_count1 <- sapply(df1, function(x) sum(is.na(x)))
-missing_count2 <- sapply(df2, function(x) sum(is.na(x)))
-missing_count3 <- sapply(df3, function(x) sum(is.na(x)))
+sapply(df1, function(x) sum(is.na(x)))
+sapply(df2, function(x) sum(is.na(x)))
+sapply(df3, function(x) sum(is.na(x)))
 
-# Print het aantal missende waarden
-print(missing_count1)
-print(missing_count2)
-print(missing_count3)
-
-# Identify the column you want to exclude (e.g., "Name")
+# Kolommen die uitgezonderd moeten worden
 columns_to_exclude <- c("Gemeentenaam_1", "ID", "WijkenEnBuurten")
+
+# Welke class hebben alle kolommen
+sapply(df1, class)
+sapply(df2, class)
+sapply(df3, class)
 
 # Functie die char" kolommen verandert naar numerieke, behalve de kolommen die "char" moeten blijven
 convert_and_exclude <- function(df, columns_to_exclude) {
@@ -42,9 +76,6 @@ convert_and_exclude <- function(df, columns_to_exclude) {
   return(df)
 }
 
-# De kolommen die uitgezonderd moeten worden
-columns_to_exclude <- c("Gemeentenaam_1", "ID", "WijkenEnBuurten")
-
 # Functie toepassen op iedere df
 df1 <- convert_and_exclude(df1, columns_to_exclude)
 df2 <- convert_and_exclude(df2, columns_to_exclude)
@@ -55,34 +86,44 @@ print(df1)
 print(df2)
 print(df3)
 
+# Bekijken hoeveel rows iedere df heeft voor het joinen
+nrow(df1) # 18003
+nrow(df2) # 18003
+nrow(df3) # 18003
+
 # Inner join df1 met df2 
-innerJoinDf1 <- inner_join(df1, df2, by = "ID")
+innerJoinDf1 <- inner_join(df1, df2, by = c("ID", 'Gemeentenaam_1', 'WijkenEnBuurten'))
+nrow(innerJoinDf1) # ook 18003
 
 # Vervolgens, het resultaat joinen met df 3
-innerJoinDf <- inner_join(innerJoinDf1, df3, by = "ID")
+innerJoinDf <- inner_join(innerJoinDf1, df3, by = c("ID",  'Gemeentenaam_1', 'WijkenEnBuurten'))
+nrow(innerJoinDf) # ook 18003
 
 # View the resulting inner-joined data frame
 #View(innerJoinDf)
 
 # verwijder alle rijen die geen Gemeente zijn, behalve de rij met waardes voor NL
 # De rijen filteren gebaserd op de gekozen regel
-df_filtered <- subset(innerJoinDf, grepl("^GM", WijkenEnBuurten.x)| WijkenEnBuurten.x == "NL00")
+length(which(grepl('GM', df1$WijkenEnBuurten)))
+
+df_filtered <- subset(innerJoinDf, grepl("^GM", WijkenEnBuurten))
+nrow(df_filtered) # klopt
 
 # Print the filtered data frame
 print(df_filtered)
 
 #verwijder kolommen waarin bijna alle rijen NA zijn
-new_df <- df_filtered[, !names(df_filtered) %in% c("ID", "WijkenEnBuurten.y", "Gemeentenaam_1.y", "WijkenEnBuurten", "WijkenEnBuurten.x", "Gemeentenaam_1","AfstandTotSchool_109", "ScholenBinnen3Km_110", "PersonenPerSoortUitkeringWW_85", 
+new_df <- df_filtered[, !names(df_filtered) %in% c("ID", "WijkenEnBuurten.y", "Gemeentenaam_1.y", "WijkenEnBuurten", "WijkenEnBuurten.x","AfstandTotSchool_109", "ScholenBinnen3Km_110", "PersonenPerSoortUitkeringWW_85", 
                                                    "PersonenPerSoortUitkeringAOW_86", "GemGestandaardiseerdInkomenVanHuish_75", "PersonenPerSoortUitkeringBijstand_83", "PersonenPerSoortUitkeringAO_84", "OpleidingsniveauMiddelbaar_65",
                                                    "OpleidingsniveauMiddelbaar_65", "OpleidingsniveauHoog_66", "Nettoarbeidsparticipatie_67", "PercentageWerknemers_68", "PercentageZelfstandigen_69", "OpleidingsniveauLaag_64")]
 names(new_df)
 print(new_df)
 
 # Gemeentenaam kolom verplaatsen naar rijnummer
-row.names(new_df) <- new_df$Gemeentenaam_1.x
+row.names(new_df) <- new_df$Gemeentenaam_1
 
 # Gemeentenaam kolom verwijdered
-new_df <- new_df[, !names(new_df) %in% c("Gemeentenaam_1.x")]
+new_df <- new_df[, !names(new_df) %in% c("Gemeentenaam_1")]
 
 # voor reproduceerbaarheid seed 123 gekozen
 set.seed(123)
@@ -97,7 +138,7 @@ n_clusters <- 10
 # Sum of squares initialiseren
 wss <- numeric(n_clusters)
 
-n <- 10  # Change this to 10 for 10 clusters
+n <- 10  # Aantal clusters selecteren 
 
 # De verschillende aantallen clusters analyseren
 for (i in 1:n) {
@@ -134,16 +175,19 @@ df_with_cluster <- new_df
 df_with_cluster$Cluster <- km.out$cluster
 
 # Weergeef de nieuwe df met de clusters kolom
-head(new_df)
+head(df_with_cluster)
 
-# Vind de cluster met het minste aantal datapunten (rijen) 
-min_count_cluster <- which.min(table(new_df$Cluster))
+# Tel het aantal rijen (Gemeenten) van iedere cluster in het kolom Cluster 
+counts <- table(df_with_cluster$Cluster)
 
-# Filter de df om alleen de rijen (Gemeenten) te zien met het minste aantal datapunten 
-cluster_data <- new_df[new_df$Cluster == min_count_cluster, ]
+# Vind het minmum aantal
+min_count <- min(counts)
 
-# Laat de gemeentes zien 
-print(cluster_data)
+# Filter de data om alleen de rijen te behouden met de minste aantal kolommen
+filtered_df <- df_with_cluster[df_with_cluster$Cluster %in% names(counts[counts == min_count]), ]
+
+# View the filtered data
+print(filtered_df)
 
 # # Geef weer bijv. alle gemeentes die in cluster 1, of een andere cluster
 # cluster_assignments <- km.out$cluster
@@ -259,70 +303,3 @@ print(current_row_names)
 cat("Row Names in Dataset:\n")
 cat(paste0("'", rownames(euclidean_mat), "'\n"))
 
-
-
-# Specify the target row name (with or without spaces)
-target_row_name <- "Aa en Hunze                             "
-
-# Clean up the target row name by removing leading and trailing spaces
-target_row_name <- trimws(target_row_name)
-
-# Convert the 'euclidean_dist' object to a matrix
-euclidean_mat <- as.matrix(euclidean_dist)
-
-# Get the row names
-row_names <- row.names(euclidean_mat)
-
-# Find the index of the target row
-target_row_index <- which(row_names == target_row_name)
-
-# Check if the target row name exists in the data
-if (length(target_row_index) == 0) {
-  cat("Row name not found: ", target_row_name, "\n")
-} else {
-  # Get the Euclidean distances for the target row
-  row_distances <- euclidean_mat[target_row_index, ]
-  
-  # Exclude the distance to the target row itself (zero distance)
-  row_distances <- row_distances[-target_row_index]
-  
-  # Find the indices of the top distances
-  top_indices <- order(row_distances)[1:10]
-  
-  # Get the corresponding row names for the top distances
-  top_row_names <- row_names[top_indices]
-  
-  # Print the top distances for the target row
-  cat("Row Name:", target_row_name, "\n")
-  print(data.frame(RowName = target_row_name, Distance = row_distances[top_indices], TopRowName = top_row_names), row.names = FALSE)
-}
-
-
-# Specify the target row name with leading/trailing spaces
-target_row_name <- "Aa en Hunze                             "
-
-# Clean up the target row name by removing leading and trailing spaces
-target_row_name <- trimws(target_row_name)
-
-# Convert the 'euclidean_dist' object to a matrix
-euclidean_mat <- as.matrix(euclidean_dist)
-
-# Get the row names
-row_names <- row.names(euclidean_mat)
-
-# Find the index of the target row
-target_row_index <- which(row_names == target_row_name)
-
-# Check if the target row name exists in the data
-if (length(target_row_index) == 0) {
-  cat("Row name not found: ", target_row_name, "\n")
-} else {
-  # The target row name was found
-  # Continue with your code to retrieve and print the top distances
-}
-
-
-class(target_row_name)
-
-cat("Row Names in Dataset:\n")
-cat(paste0("'", rownames(euclidean_mat), "'\n"))
