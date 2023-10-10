@@ -210,21 +210,22 @@ for (cluster_num in 1:10) {
   cat("\n")
 }
 
-# Create a list to store subset data frames
+# Creeër een lijst om subsets van de df op te slaan 
 cluster_subsets <- list()
 
-# Create and save subset data frames for clusters 1 to 10
+# Creeër en sla de subset dataframes op voor de clusters 1:10
 for (cluster_num in 1:10) {
   subset_df <- subset(df_with_cluster, Cluster == cluster_num, select = c( "Cluster"))
   cluster_subsets[[cluster_num]] <- subset_df
+  colnames(subset_df)[0] <- "Gemeente"
   
-  # Print and save the subset
+  # Print en sla de subset op
   cat("Cluster", cluster_num, ":\n")
   print(subset_df)
   cat("\n")
   
-  # Save the subset as a CSV file (adjust the file name as needed)
-  write.csv(subset_df, file = paste0("Cluster_", cluster_num, "_subset.csv"), row.names = TRUE)
+  # Sla de subset op als CSV- bestand
+  write.csv(subset_df, file = file.path("data", paste0("KMeans_Cluster_", cluster_num, "_subset.csv")), row.names = TRUE)
 }
 
 # PCA om dimensionaliteit te verminderen tot 3 componenten
