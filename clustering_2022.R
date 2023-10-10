@@ -143,8 +143,7 @@ n <- 10  # Aantal clusters selecteren
 # De verschillende aantallen clusters analyseren
 for (i in 1:n) {
   # fit het model: km.out
-  km.out <- kmeans(new_df_scaled, centers = i, nstart = 20)  # Change centers to i
-  # within cluster sum of squares
+  km.out <- kmeans(new_df_scaled, centers = i, nstart = 20)
   wss[i] <- km.out$tot.withinss
 }
 
@@ -169,6 +168,7 @@ scree_plot +
 # Plot the 10 clusters -> smooth ellipse.type = "norm"
 km.out <- kmeans(new_df_scaled, centers = 10, nstart = 20) 
 fviz_cluster(km.out, new_df_scaled)
+#fviz_cluster(km.out, data = new_df_scaled, ellipse.type = "euclid")
 
 # Voeg de clusternummers toe aan een nieuwe kolom
 df_with_cluster <- new_df
@@ -180,26 +180,52 @@ head(df_with_cluster)
 # Tel het aantal rijen (Gemeenten) van iedere cluster in het kolom Cluster 
 counts <- table(df_with_cluster$Cluster)
 
-# Vind het minmum aantal
+# Vind het minmum aantal & maximum aantal in één cluster
 min_count <- min(counts)
+max_count <- max(counts)
 
-# Filter de data om alleen de rijen te behouden met de minste aantal kolommen
-filtered_df <- df_with_cluster[df_with_cluster$Cluster %in% names(counts[counts == min_count]), ]
+# Filter de data om alleen de rijen te behouden met het minste & meeste aantal kolommen
+filtered_min_cluster <- df_with_cluster[df_with_cluster$Cluster %in% names(counts[counts == min_count]), ]
+filtered_max_cluster <- df_with_cluster[df_with_cluster$Cluster %in% names(counts[counts == max_count]), ]
 
-# View the filtered data
-print(filtered_df)
+# Weergeef de filtered data
+print(filtered_min_cluster)
+print(filtered_max_cluster)
 
-# # Geef weer bijv. alle gemeentes die in cluster 1, of een andere cluster
-# cluster_assignments <- km.out$cluster
+# # Vind rijen die bij 'Cluster' 2 horen
+# rows_with_cluster_2 <- df_with_cluster[df_with_cluster$Cluster == 2, ]
 # 
-# # Vind de indices van datapunten in Cluster 1
-# cluster_1_indices <- which(cluster_assignments == 10)
-# 
-# # Haal de datapunten in Cluster 1 op uit de geschaalde data
-# data_in_cluster_1 <- new_df_scaled[cluster_1_indices, ]
-# 
-# # Toon de datapunten in Cluster 1
-# print(data_in_cluster_1)
+# # Weergeef de rijen
+# print(rows_with_cluster_2)
+
+# Creeër een subset df voor iedere cluster (1:10)
+cluster_subsets <- lapply(1:10, function(cluster_num) {
+  subset(df_with_cluster, Cluster == cluster_num, select = c("Cluster"))
+})
+
+# Print de subsets van de clusters
+for (cluster_num in 1:10) {    
+  cat("Cluster", cluster_num, ":\n")
+  print(cluster_subsets[[cluster_num]])
+  cat("\n")
+}
+
+# Create a list to store subset data frames
+cluster_subsets <- list()
+
+# Create and save subset data frames for clusters 1 to 10
+for (cluster_num in 1:10) {
+  subset_df <- subset(df_with_cluster, Cluster == cluster_num, select = c( "Cluster"))
+  cluster_subsets[[cluster_num]] <- subset_df
+  
+  # Print and save the subset
+  cat("Cluster", cluster_num, ":\n")
+  print(subset_df)
+  cat("\n")
+  
+  # Save the subset as a CSV file (adjust the file name as needed)
+  write.csv(subset_df, file = paste0("Cluster_", cluster_num, "_subset.csv"), row.names = TRUE)
+}
 
 # PCA om dimensionaliteit te verminderen tot 3 componenten
 pca <- prcomp(new_df_scaled, center = TRUE, scale. = TRUE)
