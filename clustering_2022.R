@@ -365,7 +365,8 @@ print_top_10_closest_distances <- function(row_name) {
     for (i in 1:nrow(manhattan_distances)) {
       row_distances <- manhattan_distances[i, ]
       sorted_indices <- order(row_distances)
-      top_indices <- sorted_indices[1:num_closest]
+      top_indices <- sorted_indices[1:(num_closest + 1)]  # Include one extra for self-row
+      top_indices <- top_indices[top_indices != i]  # Exclude self-row
       top_closest_per_row[[i]] <- data.frame(Gemeente = rownames(new_df)[top_indices], Afstand = row_distances[top_indices])
     }
     
@@ -377,7 +378,46 @@ print_top_10_closest_distances <- function(row_name) {
 }
 
 # Zoek de bijbehorende gemeentes voor een gemeente X
-print_top_10_closest_distances("Amsterdam")
+print_top_10_closest_distances("Almere")
+
+# Euclidean
+# Definieer de functie om de top 10 dichtstbijzijnde Euclidische afstanden te vinden en af te drukken voor een specifieke rijnaam
+print_top_10_dichtstbijzijnde_euclidische_afstanden <- function(rij_naam) {
+  # Bereken de Euclidische afstand tussen elke vector in de matrix
+  euclidische_afstanden <- as.matrix(dist(new_df, method = "euclidean"))
+  
+  # Aantal dichtstbijzijnde buren om te vinden
+  num_dichtstbijzijnde <- 5
+  
+  # Vind de rij-index voor de opgegeven rijnaam
+  rij_index <- which(rownames(new_df) == rij_naam)
+  
+  if (length(rij_index) == 0) {
+    cat("Rijnaam niet gevonden:", rij_naam, "\n")
+  } else {
+    # Initialiseer een lijst om de resultaten op te slaan
+    top_dichtstbijzijnde_per_rij <- vector("list", length = nrow(euclidische_afstanden))
+    
+    # Loop door elke rij en vind de top dichtstbijzijnde rijen
+    for (i in 1:nrow(euclidische_afstanden)) {
+      rij_afstanden <- euclidische_afstanden[i, ]
+      gesorteerde_indices <- order(rij_afstanden)
+      top_indices <- gesorteerde_indices[1:(num_dichtstbijzijnde + 1)]  # Inclusief één extra voor zichzelf
+      top_indices <- top_indices[top_indices != i]  # Uitsluiten van zichzelf
+      top_dichtstbijzijnde_per_rij[[i]] <- data.frame(RijNaam = rownames(new_df)[top_indices], Afstand = rij_afstanden[top_indices])
+    }
+    
+    # Druk de top 10 dichtstbijzijnde Euclidische afstanden af voor de opgegeven rijnaam
+    cat("Top 5 dichtstbijzijnde Euclidische afstanden voor", rij_naam, ":\n")
+    print(top_dichtstbijzijnde_per_rij[[rij_index]])
+    cat("\n")
+  }
+}
+
+# Roep de functie aan met de specifieke rijnaam "Amsterdam" voor Euclidische afstand
+print_top_10_dichtstbijzijnde_euclidische_afstanden("Almere")
+
+
 
 
 
