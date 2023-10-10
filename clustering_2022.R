@@ -286,47 +286,98 @@ print(euclidean_dist)
 # # Define the file path where you want to save the CSV file
 # file_path <- "euclidean_distances.csv"
 
-# Top 10 kortste afstanden om te selecteren
-top_n <- 10
+# # Top 10 kortste afstanden om te selecteren
+# top_n <- 10
+# 
+# # Zet het 'euclidean_dist'-object om naar een matrix
+# euclidean_mat <- as.matrix(euclidean_dist)
+# 
+# # Haal de rijnamen op
+# row_names <- row.names(euclidean_mat)
+# 
+# # Een lijst om de topafstanden en hun overeenkomstige rijnamen op te slaan
+# top_distances_with_names <- vector("list", length = nrow(euclidean_mat))
+# 
+# # Loop door elke rij om de topafstanden te vinden
+# for (i in 1:nrow(euclidean_mat)) {
+#   # Haal de Euclidische afstanden op voor de huidige rij
+#   row_distances <- euclidean_mat[i, ]
+#   
+#   # Sluit de afstand tot de huidige rij uit (nul afstand)
+#   row_distances <- row_distances[-i]
+#   
+#   # Vind de indices van de topafstanden
+#   top_indices <- order(row_distances)[1:top_n]
+#   
+#   # Haal de overeenkomstige rijnamen op voor de topafstanden
+#   top_row_names <- row_names[top_indices]
+#   
+#   # Sla de topafstanden en hun overeenkomstige rijnamen op in de lijst
+#   top_distances_with_names[[i]] <- data.frame(RowName = top_row_names, Distance = row_distances[top_indices])
+# }
 
-# Zet het 'euclidean_dist'-object om naar een matrix
-euclidean_mat <- as.matrix(euclidean_dist)
 
-# Haal de rijnamen op
-row_names <- row.names(euclidean_mat)
+# Manhattan distance
 
-# Een lijst om de topafstanden en hun overeenkomstige rijnamen op te slaan
-top_distances_with_names <- vector("list", length = nrow(euclidean_mat))
+# # Calculate Manhattan distance between each vector in the matrix
+# manhattan_distances <- as.matrix(dist(new_df, method = "manhattan"))
+# 
+# # Number of closest neighbors to find
+# num_closest <- 10
+# 
+# # Initialize a list to store the results
+# top_closest_per_row <- vector("list", length = nrow(manhattan_distances))
+# 
+# # Loop through each row and find the top closest rows
+# for (i in 1:nrow(manhattan_distances)) {
+#   row_distances <- manhattan_distances[i, ]
+#   sorted_indices <- order(row_distances)
+#   top_indices <- sorted_indices[1:num_closest]
+#   top_closest_per_row[[i]] <- data.frame(RowName = rownames(new_df)[top_indices], Distance = row_distances[top_indices])
+# }
+# 
+# # Print the top 10 closest distances for each row with row names
+# for (i in 1:nrow(manhattan_distances)) {
+#   cat("Top 10 closest distances for", rownames(new_df)[i], ":\n")
+#   print(top_closest_per_row[[i]])
+#   cat("\n")
+# }
 
-# Loop door elke rij om de topafstanden te vinden
-for (i in 1:nrow(euclidean_mat)) {
-  # Haal de Euclidische afstanden op voor de huidige rij
-  row_distances <- euclidean_mat[i, ]
+
+# Functie om de dichtsbijzijnde gemeentes te vinden voor een specifieke gemeente (rij)
+print_top_10_closest_distances <- function(row_name) {
+  # Bereken Manhattan afstand voor iedere vector in de matrix
+  manhattan_distances <- as.matrix(dist(new_df, method = "manhattan"))
   
-  # Sluit de afstand tot de huidige rij uit (nul afstand)
-  row_distances <- row_distances[-i]
+  # Aantal dichtsbijzijnde gemeenten
+  num_closest <- 5
   
-  # Vind de indices van de topafstanden
-  top_indices <- order(row_distances)[1:top_n]
+  # Vind de rijne index voor een specifieke rij
+  row_index <- which(rownames(new_df) == row_name)
   
-  # Haal de overeenkomstige rijnamen op voor de topafstanden
-  top_row_names <- row_names[top_indices]
-  
-  # Sla de topafstanden en hun overeenkomstige rijnamen op in de lijst
-  top_distances_with_names[[i]] <- data.frame(RowName = top_row_names, Distance = row_distances[top_indices])
+  if (length(row_index) == 0) {
+    cat("Rij naam is niet gevonden:", row_name, "\n")
+  } else {
+    # Initialiseer een lijst om de resultaten op te slaan
+    top_closest_per_row <- vector("list", length = nrow(manhattan_distances))
+    
+    # Loop door iedere rij en vind de dichtsbijzijnde rijen
+    for (i in 1:nrow(manhattan_distances)) {
+      row_distances <- manhattan_distances[i, ]
+      sorted_indices <- order(row_distances)
+      top_indices <- sorted_indices[1:num_closest]
+      top_closest_per_row[[i]] <- data.frame(Gemeente = rownames(new_df)[top_indices], Afstand = row_distances[top_indices])
+    }
+    
+    # Print de top 5 
+    cat("Top 5 dichtsbijzijnde gemeenten voor de gemeente", row_name, ":\n")
+    print(top_closest_per_row[[row_index]])
+    cat("\n")
+  }
 }
 
-# Print de top kortste Eucliden afstanden met de rij-namen (Gemeenten) for iedere Gemeente
-for (i in 1:length(top_distances_with_names)) {
-  cat("Row Name:", row_names[i], "\n")
-  print(top_distances_with_names[[i]], row.names = FALSE)
-  cat("\n")
-}
+# Zoek de bijbehorende gemeentes voor een gemeente X
+print_top_10_closest_distances("Amsterdam")
 
-# Check the current row names in your dataset
-current_row_names <- rownames(euclidean_mat)
-print(current_row_names)
 
-cat("Row Names in Dataset:\n")
-cat(paste0("'", rownames(euclidean_mat), "'\n"))
 
