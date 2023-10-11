@@ -345,12 +345,12 @@ print(euclidean_dist)
 
 
 # Functie om de dichtsbijzijnde gemeentes te vinden voor een specifieke gemeente (rij)
-print_top_10_closest_distances <- function(row_name) {
+print_top_10_dichtstbijzijnde_manhattan_afstanden <- function(row_name) {
   # Bereken Manhattan afstand voor iedere vector in de matrix
   manhattan_distances <- as.matrix(dist(new_df, method = "manhattan"))
   
   # Aantal dichtsbijzijnde gemeenten
-  num_closest <- 5
+  num_closest <- 8
   
   # Vind de rijne index voor een specifieke rij
   row_index <- which(rownames(new_df) == row_name)
@@ -365,20 +365,45 @@ print_top_10_closest_distances <- function(row_name) {
     for (i in 1:nrow(manhattan_distances)) {
       row_distances <- manhattan_distances[i, ]
       sorted_indices <- order(row_distances)
-      top_indices <- sorted_indices[1:(num_closest + 1)]  # Include one extra for self-row
-      top_indices <- top_indices[top_indices != i]  # Exclude self-row
+      top_indices <- sorted_indices[1:(num_closest + 1)]  # Inclusief één extra voor zichzelf
+      top_indices <- top_indices[top_indices != i]  # Uitsluiten van zichzelf
       top_closest_per_row[[i]] <- data.frame(Gemeente = rownames(new_df)[top_indices], Afstand = row_distances[top_indices])
     }
     
     # Print de top 5 
-    cat("Top 5 dichtsbijzijnde gemeenten voor de gemeente", row_name, ":\n")
+    cat("Top 5 vergelijkbare gemeenten voor de gemeente", row_name, ":\n")
     print(top_closest_per_row[[row_index]])
     cat("\n")
   }
 }
 
 # Zoek de bijbehorende gemeentes voor een gemeente X
-print_top_10_closest_distances("Almere")
+print_top_10_dichtstbijzijnde_manhattan_afstanden("Haarlem")
+
+# print_verste_gemeente <- function(row_name) {
+#   # Bereken Manhattan afstand voor iedere vector in de matrix
+#   manhattan_distances <- as.matrix(dist(new_df, method = "manhattan"))
+#   
+#   # Vind de rij-index voor een specifieke rij
+#   row_index <- which(rownames(new_df) == row_name)
+#   
+#   if (length(row_index) == 0) {
+#     cat("Rij naam is niet gevonden:", row_name, "\n")
+#   } else {
+#     # Haal de hoogste Manhattan-afstand op
+#     max_distance <- max(manhattan_distances[row_index, ])
+#     
+#     # Vind de gemeente(s) met de hoogste Manhattan-afstand
+#     farthest_communities <- rownames(new_df)[manhattan_distances[row_index, ] == max_distance]
+#     
+#     # Print de verste gemeente(s)
+#     cat("De verste gemeente(s) van", row_name, "met een Manhattan-afstand van", max_distance, "zijn:")
+#     cat(farthest_communities, sep = ", ")
+#     cat("\n")
+#   }
+# }
+# 
+# print_verste_gemeente("Haarlem")
 
 # Euclidean
 # Definieer de functie om de top 10 dichtstbijzijnde Euclidische afstanden te vinden en af te drukken voor een specifieke rijnaam
@@ -402,7 +427,7 @@ print_top_10_dichtstbijzijnde_euclidische_afstanden <- function(rij_naam) {
     for (i in 1:nrow(euclidische_afstanden)) {
       rij_afstanden <- euclidische_afstanden[i, ]
       gesorteerde_indices <- order(rij_afstanden)
-      top_indices <- gesorteerde_indices[1:(num_dichtstbijzijnde + 1)]  # Inclusief één extra voor zichzelf
+      top_indices <- gesorteerde_indices[1:(num_dichtstbijzijnde + 1)] # Inclusief één extra voor zichzelf
       top_indices <- top_indices[top_indices != i]  # Uitsluiten van zichzelf
       top_dichtstbijzijnde_per_rij[[i]] <- data.frame(RijNaam = rownames(new_df)[top_indices], Afstand = rij_afstanden[top_indices])
     }
@@ -415,7 +440,7 @@ print_top_10_dichtstbijzijnde_euclidische_afstanden <- function(rij_naam) {
 }
 
 # Roep de functie aan met de specifieke rijnaam "Amsterdam" voor Euclidische afstand
-print_top_10_dichtstbijzijnde_euclidische_afstanden("Almere")
+print_top_10_dichtstbijzijnde_euclidische_afstanden("Utrecht")
 
 
 
