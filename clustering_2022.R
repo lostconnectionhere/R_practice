@@ -168,6 +168,17 @@ scree_plot +
 # Plot the 10 clusters -> smooth ellipse.type = "norm"
 km.out <- kmeans(new_df_scaled, centers = 10, nstart = 20) 
 fviz_cluster(km.out, new_df_scaled)
+
+# Filter data points that belong to Cluster 3
+cluster_to_plot <- 3
+data_in_cluster_3 <- new_df_scaled[km.out$cluster == cluster_to_plot, ]
+
+# Plot all 10 clusters with smoothed ellipses
+fviz_cluster(km.out, data = new_df_scaled, ellipse.type = "norm", geom = "point")
+
+# Add points from Cluster 3 (different color for emphasis)
+fviz_cluster(km.out, data = data_in_cluster_3, ellipse.type = "none", geom = "point", add = TRUE, pointshape = 19, fill = "red")
+
 #fviz_cluster(km.out, data = new_df_scaled, ellipse.type = "euclid")
 
 # Voeg de clusternummers toe aan een nieuwe kolom
@@ -239,6 +250,15 @@ pca_data$Cluster <- as.factor(km.out$cluster)
 plot_ly(data = pca_data, x = ~PC1, y = ~PC2, z = ~PC3, color = ~Cluster, type = "scatter3d", mode = "markers+text", text = rownames(pca_data), textposition = 'top center') %>%
   layout(scene = list(title = "3D Scatterplot with Clusters (PCA)"))
 
+# Filter the data for a specific cluster (e.g., Cluster 1)
+cluster_number <- 3
+filtered_data <- pca_data[pca_data$Cluster == cluster_number, ]
+
+# Create a 3D scatterplot for the filtered data
+plot_ly(data = filtered_data, x = ~PC1, y = ~PC2, z = ~PC3, color = ~Cluster, type = "scatter3d", mode = "markers+text", text = rownames(filtered_data), textposition = 'top center') %>%
+  layout(scene = list(title = "3D Scatterplot for Cluster 1 (PCA)"))
+
+
 # Bereken correlaties van alle paren van de kolommen 
 correlation_matrix <- cor(new_df)
 
@@ -260,13 +280,6 @@ high_correlations <- abs(correlation_matrix) > threshold
 # Weergeef de rij en kolom indices met hoge correlaties 
 high_correlation_pairs <- which(high_correlations, arr.ind = TRUE)
 print(high_correlation_pairs)
-
-#Euclidean Distance
-# Bereken de Euclidean distance
-euclidean_dist <- dist(new_df)
-
-# Print de Euclidean distance matrix
-print(euclidean_dist)
 
 # # Calculate summary statistics for the distances
 # min_distance <- min(euclidean_dist)
@@ -380,52 +393,54 @@ print_top_10_dichtstbijzijnde_manhattan_afstanden <- function(row_name) {
 # Zoek de bijbehorende gemeentes voor een gemeente X
 print_top_10_dichtstbijzijnde_manhattan_afstanden("Haarlem")
 
-# # Functie om de dichtsbijzijnde gemeentes te vinden voor een specifieke gemeente (rij)
-# print_manhattan_afstanden_percentages <- function(row_name) {
-#   # Bereken Manhattan afstand voor iedere vector in de matrix
-#   manhattan_distances <- as.matrix(dist(new_df, method = "manhattan"))
-#   
-#   # Aantal dichtsbijzijnde gemeenten
-#   num_closest <- 344
-#   
-#   # Vind de rijne index voor een specifieke rij
-#   row_index <- which(rownames(new_df) == row_name)
-#   
-#   if (length(row_index) == 0) {
-#     cat("Rij naam is niet gevonden:", row_name, "\n")
-#   } else {
-#     # Initialiseer een lijst om de resultaten op te slaan
-#     top_closest_per_row <- vector("list", length = nrow(manhattan_distances))
-#     
-#     # Loop door iedere rij en vind de dichtsbijzijnde rijen
-#     for (i in 1:nrow(manhattan_distances)) {
-#       row_distances <- manhattan_distances[i, ]
-#       sorted_indices <- order(row_distances)
-#       top_indices <- sorted_indices[1:(num_closest + 1)]  # Inclusief één extra voor zichzelf
-#       top_indices <- top_indices[top_indices != i]  # Uitsluiten van zichzelf
-#       
-#       # Calculate percentages based on Manhattan distances
-#       min_distance <- min(row_distances[top_indices])
-#       max_distance <- max(row_distances[top_indices])
-#       distances <- row_distances[top_indices]
-#       percentages <- 100 - (distances - min_distance) / (max_distance - min_distance) * 100
-#       
-#       top_closest_per_row[[i]] <- data.frame(
-#         Gemeente = rownames(new_df)[top_indices],
-#         Afstand = row_distances[top_indices],
-#         Percentage = percentages
-#       )
-#     }
-#     
-#     # Print the top 5
-#     cat("Top 5 vergelijkbare gemeenten voor de gemeente", row_name, ":\n")
-#     print(top_closest_per_row[[row_index]])
-#     cat("\n")
-#   }
-# }
-# 
-# # Zoek de bijbehorende gemeentes voor een gemeente X
-# print_manhattan_afstanden_percentages("Haarlem")
+# Functie om de dichtsbijzijnde gemeentes te vinden voor een specifieke gemeente (rij)
+print_manhattan_afstanden_percentages <- function(row_name) {
+  # Bereken Manhattan afstand voor iedere vector in de matrix
+  manhattan_distances <- as.matrix(dist(new_df, method = "manhattan"))
+
+  # Aantal dichtsbijzijnde gemeenten
+  num_closest <- 344
+
+  # Vind de rijne index voor een specifieke rij
+  row_index <- which(rownames(new_df) == row_name)
+
+  if (length(row_index) == 0) {
+    cat("Rij naam is niet gevonden:", row_name, "\n")
+  } else {
+    # Initialiseer een lijst om de resultaten op te slaan
+    top_closest_per_row <- vector("list", length = nrow(manhattan_distances))
+
+    # Loop door iedere rij en vind de dichtsbijzijnde rijen
+    for (i in 1:nrow(manhattan_distances)) {
+      row_distances <- manhattan_distances[i, ]
+      sorted_indices <- order(row_distances)
+      top_indices <- sorted_indices[1:(num_closest + 1)]  # Inclusief één extra voor zichzelf
+      top_indices <- top_indices[top_indices != i]  # Uitsluiten van zichzelf
+
+      # Calculate percentages based on Manhattan distances
+      min_distance <- min(row_distances[top_indices])
+      max_distance <- max(row_distances[top_indices])
+      distances <- row_distances[top_indices]
+      percentages <- 100 - (distances - min_distance) / (max_distance - min_distance) * 100
+
+      top_closest_per_row[[i]] <- data.frame(
+        Gemeente = rownames(new_df)[top_indices],
+        Afstand = row_distances[top_indices],
+        Percentage = percentages
+      )
+    }
+
+    # Print the top 5
+    cat("Top 5 vergelijkbare gemeenten voor de gemeente", row_name, ":\n")
+    print(top_closest_per_row[[row_index]])
+    cat("\n")
+  }
+}
+
+# Zoek de bijbehorende gemeentes voor een gemeente X
+print_manhattan_afstanden_percentages("Haarlem")
+
+
 
 # print_verste_gemeente <- function(row_name) {
 #   # Bereken Manhattan afstand voor iedere vector in de matrix
@@ -451,6 +466,58 @@ print_top_10_dichtstbijzijnde_manhattan_afstanden("Haarlem")
 # }
 # 
 # print_verste_gemeente("Haarlem")
+
+# Function to categorize percentages into specified categories
+# categorize_percentage <- function(percentage) {
+#   if (percentage >= 1 && percentage <= 14) {
+#     return("Categorie 1")
+#   } else if (percentage >= 15 && percentage <= 28) {
+#     return("Categorie 2")
+#   } else if (percentage >= 29 && percentage <= 42) {
+#     return("Categorie 3")
+#   } else if (percentage >= 43 && percentage <= 56) {
+#     return("Categorie 4")
+#   } else if (percentage >= 57 && percentage <= 70) {
+#     return("Categorie 5")
+#   } else if (percentage >= 71 && percentage <= 84) {
+#     return("Categorie 6")
+#   } else if (percentage >= 85 && percentage <= 100) {
+#     return("Categorie 7")
+#   }
+# }
+# 
+# # Function to find the farthest community for a specific row
+# print_verste_gemeente <- function(row_name) {
+#   # Calculate Manhattan distance for each vector in the matrix
+#   manhattan_distances <- as.matrix(dist(new_df, method = "manhattan"))
+#   
+#   # Find the row index for a specific row
+#   row_index <- which(rownames(new_df) == row_name)
+#   
+#   if (length(row_index) == 0) {
+#     cat("Rij naam is niet gevonden:", row_name, "\n")
+#   } else {
+#     # Get the maximum Manhattan distance
+#     max_distance <- max(manhattan_distances[row_index, ])
+#     
+#     # Find the community(ies) with the maximum Manhattan distance
+#     farthest_communities <- rownames(new_df)[manhattan_distances[row_index, ] == max_distance]
+#     
+#     # Calculate the percentage based on the maximum distance
+#     percentage <- (max_distance / max(manhattan_distances)) * 100
+#     categorie <- categorize_percentage(percentage)
+#     
+#     # Print the farthest community(ies) and the categorized percentage
+#     cat("De verste gemeente(s) van", row_name, "met een Manhattan-afstand van", max_distance, "zijn:\n")
+#     cat(farthest_communities, sep = ", ")
+#     cat("\n")
+#     cat("De gecategoriseerde percentage is:", percentage, "en behoort tot", categorie, "\n")
+#   }
+# }
+# 
+# # Call the function to find the farthest community
+# print_verste_gemeente("Haarlem")
+
 
 # Euclidean
 # Definieer de functie om de top 10 dichtstbijzijnde Euclidische afstanden te vinden en af te drukken voor een specifieke rijnaam
