@@ -553,29 +553,6 @@ print_top_10_dichtstbijzijnde_euclidische_afstanden <- function(rij_naam) {
 # Roep de functie aan met de specifieke rijnaam "Amsterdam" voor Euclidische afstand
 print_top_10_dichtstbijzijnde_euclidische_afstanden("Rotterdam")
 
-# test dendogram 
-# Compute distances and hierarchical clustering
-dd <- dist(scale(new_df), method = "euclidean")
-hc <- hclust(dd, method = "ward.D2")
-
-# plot
-plot(x, labels = NULL, hang = 0.1, 
-     main = "Cluster dendrogram", sub = NULL,
-     xlab = NULL, ylab = "Height")
-
-plot(hc)
-
-plot(hc, hang = -1, cex = 0.6)
-plot(x, type = c("rectangle", "triangle"), horiz = FALSE)
-plot(hc, xlim = c(1, 20), ylim = c(1,8))
-
-# distance matrix
-d <- dist(new_df)
-# hierarchical clustering
-h2_test2 <- hclust(d)
-# dendogram
-plot(as.dendrogram(h2_test2))
-
 
 
 
