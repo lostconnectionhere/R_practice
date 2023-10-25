@@ -98,6 +98,7 @@ nrow(innerJoinDf1) # ook 18003
 # Vervolgens, het resultaat joinen met df 3
 innerJoinDf <- inner_join(innerJoinDf1, df3, by = c("ID",  'Gemeentenaam_1', 'WijkenEnBuurten'))
 nrow(innerJoinDf) # ook 18003
+names(innerJoinDf)
 
 # View the resulting inner-joined data frame
 #View(innerJoinDf)
@@ -125,6 +126,7 @@ row.names(new_df) <- new_df$Gemeentenaam_1
 # Gemeentenaam kolom verwijdered
 new_df <- new_df[, !names(new_df) %in% c("Gemeentenaam_1")]
 
+names(new_df)
 # voor reproduceerbaarheid seed 123 gekozen
 set.seed(123)
 
@@ -167,19 +169,14 @@ scree_plot +
 
 # Plot the 10 clusters -> smooth ellipse.type = "norm"
 km.out <- kmeans(new_df_scaled, centers = 10, nstart = 20) 
-fviz_cluster(km.out, new_df_scaled)
+cluster_plot <- fviz_cluster(km.out, data = new_df_scaled)
+cluster_plot
 
-# Filter data points that belong to Cluster 3
-cluster_to_plot <- 3
-data_in_cluster_3 <- new_df_scaled[km.out$cluster == cluster_to_plot, ]
+# Cluster plot opslaan
+ggsave(file.path("visualisations","cluster_plot.png"), plot = cluster_plot, width = 23, height = 15, dpi = 300)
 
-# Plot all 10 clusters with smoothed ellipses
-fviz_cluster(km.out, data = new_df_scaled, ellipse.type = "norm", geom = "point")
-
-# Add points from Cluster 3 (different color for emphasis)
-fviz_cluster(km.out, data = data_in_cluster_3, ellipse.type = "none", geom = "point", add = TRUE, pointshape = 19, fill = "red")
-
-#fviz_cluster(km.out, data = new_df_scaled, ellipse.type = "euclid")
+# # Plot all 10 clusters with smoothed ellipses
+# fviz_cluster(km.out, new_df_scaled, ellipse.type = "norm")
 
 # Voeg de clusternummers toe aan een nieuwe kolom
 df_with_cluster <- new_df
@@ -256,7 +253,7 @@ filtered_data <- pca_data[pca_data$Cluster == cluster_number, ]
 
 # Create a 3D scatterplot for the filtered data
 plot_ly(data = filtered_data, x = ~PC1, y = ~PC2, z = ~PC3, color = ~Cluster, type = "scatter3d", mode = "markers+text", text = rownames(filtered_data), textposition = 'top center') %>%
-  layout(scene = list(title = "3D Scatterplot for Cluster 1 (PCA)"))
+  layout(scene = list(title = "3D Scatterplot for Cluster 3 (PCA)"))
 
 
 # Bereken correlaties van alle paren van de kolommen 
@@ -363,7 +360,7 @@ print_top_10_dichtstbijzijnde_manhattan_afstanden <- function(row_name) {
   manhattan_distances <- as.matrix(dist(new_df, method = "manhattan"))
   
   # Aantal dichtsbijzijnde gemeenten
-  num_closest <- 344
+  num_closest <- 5
   
   # Vind de rijne index voor een specifieke rij
   row_index <- which(rownames(new_df) == row_name)
@@ -391,7 +388,7 @@ print_top_10_dichtstbijzijnde_manhattan_afstanden <- function(row_name) {
 }
 
 # Zoek de bijbehorende gemeentes voor een gemeente X
-print_top_10_dichtstbijzijnde_manhattan_afstanden("Haarlem")
+print_top_10_dichtstbijzijnde_manhattan_afstanden("'s-Gravenhage")
 
 # Functie om de dichtsbijzijnde gemeentes te vinden voor een specifieke gemeente (rij)
 print_manhattan_afstanden_percentages <- function(row_name) {
@@ -399,7 +396,7 @@ print_manhattan_afstanden_percentages <- function(row_name) {
   manhattan_distances <- as.matrix(dist(new_df, method = "manhattan"))
 
   # Aantal dichtsbijzijnde gemeenten
-  num_closest <- 344
+  num_closest <- 5
 
   # Vind de rijne index voor een specifieke rij
   row_index <- which(rownames(new_df) == row_name)
@@ -438,7 +435,7 @@ print_manhattan_afstanden_percentages <- function(row_name) {
 }
 
 # Zoek de bijbehorende gemeentes voor een gemeente X
-print_manhattan_afstanden_percentages("Haarlem")
+print_manhattan_afstanden_percentages("'s-Gravenhage")
 
 
 
@@ -554,7 +551,30 @@ print_top_10_dichtstbijzijnde_euclidische_afstanden <- function(rij_naam) {
 }
 
 # Roep de functie aan met de specifieke rijnaam "Amsterdam" voor Euclidische afstand
-print_top_10_dichtstbijzijnde_euclidische_afstanden("Haarlem")
+print_top_10_dichtstbijzijnde_euclidische_afstanden("Rotterdam")
+
+# test dendogram 
+# Compute distances and hierarchical clustering
+dd <- dist(scale(new_df), method = "euclidean")
+hc <- hclust(dd, method = "ward.D2")
+
+# plot
+plot(x, labels = NULL, hang = 0.1, 
+     main = "Cluster dendrogram", sub = NULL,
+     xlab = NULL, ylab = "Height")
+
+plot(hc)
+
+plot(hc, hang = -1, cex = 0.6)
+plot(x, type = c("rectangle", "triangle"), horiz = FALSE)
+plot(hc, xlim = c(1, 20), ylim = c(1,8))
+
+# distance matrix
+d <- dist(new_df)
+# hierarchical clustering
+h2_test2 <- hclust(d)
+# dendogram
+plot(as.dendrogram(h2_test2))
 
 
 
