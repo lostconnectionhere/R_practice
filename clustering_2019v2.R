@@ -59,4 +59,14 @@ row.names(df1) <- df1$Gemeente
 new_df <- df1[, !names(df1) %in% c("Gemeente")]
 names(new_df)
 
+# Data scaling, dit kan op meerdere manieren
+library(caret)
 
+# Min-Max scaling (Normalization)
+min_max_scaled_data <- as.data.frame(scale(new_df, center = FALSE, scale = apply(new_df, 2, max) - apply(new_df, 2, min)))
+
+# Standardization (Z-score scaling)
+standardized_data <- as.data.frame(scale(new_df))
+
+# Normalization (0 to 1)
+normalized_data <- preProcess(new_df, method = c("range"))
