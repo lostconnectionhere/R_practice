@@ -20,44 +20,52 @@ print(df1$Gemeente)
 df1 <- head(df1, n = nrow(df1) - 4)
 print(df1$Gemeente)
 
+# Gemeentenaam kolom verplaatsen naar rijnummer
+row.names(df1) <- df1$Gemeente
+
 # Verwijder alle gemeenten die NA hebben voor aantal inwoners
 na_rows <- is.na(df1$Inwoners.Totaal)
 print(df1[na_rows,])
 df1 <- df1[!na_rows, ]
 
+# Hoeveel missende waarden per kolom?
+missing_values <- colSums(is.na(df1))
+print(missing_values)
+
+# Verwijder de kolommen die leeg zijn
+columns_to_delete <- c("Gemeente", "Oppervlakten.Bedrijfsterreinen", "Banen.van.werknemers"," Periodieke.bijstandsuitkeringen.Adreslozen")
+new_df <- df1[, !(names(df1) %in% columns_to_delete)]
+names(new_df)
+
 # Functie om leading en trailing spaties te verwijderen voor character- of factor-kolommen
-trim_character_or_factor <- function(df) {
-  df[] <- lapply(df, function(col) {
+trim_character_or_factor <- function(new_df) {
+  new_df[] <- lapply(new_df, function(col) {
     if (is.character(col) || is.factor(col)) {
       return(trimws(as.character(col)))
     } else {
       return(col)
     }
   })
-  return(df)
+  return(new_df)
 }
 
 # Pas de functie toe op je dataframes df1, df2, en df3
-df1 <- trim_character_or_factor(df1)
+new_df <- trim_character_or_factor(new_df)
 
 # Hoeveel punten bij iedere kolom aanwezig
-apply(df1, 2,  function(col) sum(col == '.'))
+apply(new_df, 2,  function(col) sum(col == '.'))
 
 # Alle punten omzetten in NA's
-df1 <- df1 %>% mutate(across(.cols = everything(), ~replace(., . == '.', NA)))
+new_df <- new_df %>% mutate(across(.cols = everything(), ~replace(., . == '.', NA)))
 
 # Hoeveel missende waarden per kolom
-sapply(df1, function(x) sum(is.na(x)))
+sapply(new_df, function(x) sum(is.na(x)))
 
 # Welke class hebben alle kolommen
-sapply(df1, class)
+sapply(new_df, class)
 
-# Gemeentenaam kolom verplaatsen naar rijnummer
-row.names(df1) <- df1$Gemeente
-
-# Gemeentenaam kolom verwijdered
-new_df <- df1[, !names(df1) %in% c("Gemeente")]
-names(new_df)
+# voor reproduceerbaarheid seed 123 gekozen
+set.seed(123)
 
 # Data scaling, dit kan op meerdere manieren
 library(caret)
@@ -70,3 +78,62 @@ standardized_data <- as.data.frame(scale(new_df))
 
 # Normalization (0 to 1)
 normalized_data <- preProcess(new_df, method = c("range"))
+
+
+
+# Check for missing values
+if (any(is.na(min_max_scaled_data))) {
+  # Handle or remove missing values as needed
+  min_max_scaled_data <- na.omit(min_max_scaled_data)
+}
+
+# Check for infinite values
+if (any(!is.finite(min_max_scaled_data))) {
+  # Handle or remove infinite values as needed
+  min_max_scaled_data <- min_max_scaled_data[is.finite(min_max_scaled_data)]
+}
+
+
+#KMeans
+# Max clusters op 10
+n_clusters <- 10
+
+# Sum of squares initialiseren
+wss <- numeric(n_clusters)
+
+n <- 10  # Aantal clusters selecteren 
+
+# De verschillende aantallen clusters analyseren - min_max_scaled_data
+for (i in 1:n) {
+  # fit het model: km.out
+  km.out_minmax <- kmeans(min_max_scaled_data, centers = i, nstart = 20)
+  wss[i] <- km.out$tot.withinss
+}
+
+# scree plot
+wss_df_minmax <- tibble(clusters = 1:n, wss = wss)
+
+scree_plot <- ggplot(wss_df_minmax, aes(x = clusters, y = wss, group = 1)) +
+  geom_point(size = 4) +
+  geom_line() +
+  scale_x_continuous(breaks = c(2, 4, 6, 8, 10)) +
+  xlab('Number of clusters')
+
+scree_plot
+
+scree_plot +
+  geom_hline(
+    yintercept = wss, 
+    linetype = 'dashed', 
+    col = c(rep('#000000', 9), '#FF0000')
+  )
+
+# Plot the 10 clusters -> smooth ellipse.type = "norm"
+km.out <- kmeans(new_df_scaled, centers = 10, nstart = 20) 
+cluster_plot <- fviz_cluster(km.out, data = new_df_scaled)
+cluster_plot
+
+# Cluster plot opslaan
+ggsave(file.path("visualisations","cluster_plot.png"), plot = cluster_plot, width = 23, height = 15, dpi = 300)
+
+
