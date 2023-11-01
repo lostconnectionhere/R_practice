@@ -94,30 +94,30 @@ for (i in 1:n_clusters) {
   wss[i] <- km.out_minmax$tot.withinss
 }
 
-# scree plot
-wss_df_minmax <- tibble(clusters = 1:n, wss = wss)
+# Scree plot
+wss_df_minmax <- tibble(clusters = 1:n_clusters, wss = wss)
 
-scree_plot <- ggplot(wss_df_minmax, aes(x = clusters, y = wss, group = 1)) +
+scree_plot_minmax <- ggplot(wss_df_minmax, aes(x = clusters, y = wss, group = 1)) +
   geom_point(size = 4) +
   geom_line() +
   scale_x_continuous(breaks = c(2, 4, 6, 8, 10)) +
   xlab('Number of clusters')
 
-scree_plot
+scree_plot_minmax
 
-scree_plot +
+# Add a horizontal dashed line for the WSS values
+scree_plot_minmax +
   geom_hline(
     yintercept = wss, 
     linetype = 'dashed', 
-    col = c(rep('#000000', 9), '#FF0000')
+    col = c(rep('#000000', n_clusters - 1), '#FF0000')
   )
 
 # Plot the 10 clusters -> smooth ellipse.type = "norm"
-km.out <- kmeans(new_df_scaled, centers = 10, nstart = 20) 
-cluster_plot <- fviz_cluster(km.out, data = new_df_scaled)
-cluster_plot
+cluster_plot_minmax <- fviz_cluster(km.out_minmax, data = min_max_scaled_data)
+cluster_plot_minmax
 
 # Cluster plot opslaan
-ggsave(file.path("visualisations","cluster_plot.png"), plot = cluster_plot, width = 23, height = 15, dpi = 300)
+ggsave(file.path("visualisations","cluster_plot_minmax.png"), plot = cluster_plot_minmax, width = 23, height = 15, dpi = 300)
 
 
