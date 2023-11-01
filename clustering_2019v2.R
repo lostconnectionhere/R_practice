@@ -33,7 +33,7 @@ missing_values <- colSums(is.na(df1))
 print(missing_values)
 
 # Verwijder de kolommen die leeg zijn
-columns_to_delete <- c("Gemeente", "Oppervlakten.Bedrijfsterreinen", "Banen.van.werknemers"," Periodieke.bijstandsuitkeringen.Adreslozen")
+columns_to_delete <- c("Gemeente", "Oppervlakten.Bedrijfsterreinen", "Banen.van.werknemers", "Periodieke.bijstandsuitkeringen.Adreslozen")
 new_df <- df1[, !(names(df1) %in% columns_to_delete)]
 names(new_df)
 
@@ -77,22 +77,8 @@ min_max_scaled_data <- as.data.frame(scale(new_df, center = FALSE, scale = apply
 standardized_data <- as.data.frame(scale(new_df))
 
 # Normalization (0 to 1)
-normalized_data <- preProcess(new_df, method = c("range"))
-
-
-
-# Check for missing values
-if (any(is.na(min_max_scaled_data))) {
-  # Handle or remove missing values as needed
-  min_max_scaled_data <- na.omit(min_max_scaled_data)
-}
-
-# Check for infinite values
-if (any(!is.finite(min_max_scaled_data))) {
-  # Handle or remove infinite values as needed
-  min_max_scaled_data <- min_max_scaled_data[is.finite(min_max_scaled_data)]
-}
-
+normalized_data <- predict(preProcess(new_df, method = "range"), newdata = new_df)
+# normalized_data <- preProcess(new_df, method = c("range"))
 
 #KMeans
 # Max clusters op 10
@@ -101,13 +87,11 @@ n_clusters <- 10
 # Sum of squares initialiseren
 wss <- numeric(n_clusters)
 
-n <- 10  # Aantal clusters selecteren 
-
 # De verschillende aantallen clusters analyseren - min_max_scaled_data
-for (i in 1:n) {
-  # fit het model: km.out
+for (i in 1:n_clusters) {
+  # fit het model: km.out_minmax
   km.out_minmax <- kmeans(min_max_scaled_data, centers = i, nstart = 20)
-  wss[i] <- km.out$tot.withinss
+  wss[i] <- km.out_minmax$tot.withinss
 }
 
 # scree plot
