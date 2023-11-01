@@ -14,10 +14,13 @@ head(df1)
 # Kolomnamen wijzigen voor leesbaarheid
 colnames(df1)[colnames(df1) == "X"] <- "Gemeente"
 colnames(df1)[colnames(df1) == "Inwoners.naar.geslacht.en.leeftijd.Totaal.mannen.en.vrouwen.Totaal.mannen.en.vrouwen"] <- "Inwoners.Totaal"
-print(df1$Gemeente)
 
 # Verwijder de laatste 4 rijen, die staan voor irrelevante data bijv. Buitenland
 df1 <- head(df1, n = nrow(df1) - 4)
+
+# Verwijder "(..)" van de rijnamen
+# df1$Gemeente <- sub("\\s?\\(.*\\)", "", df1$Gemeente)
+df1$Gemeente <- sub(" \\(gemeente\\)$", "", df1$Gemeente)
 print(df1$Gemeente)
 
 # Gemeentenaam kolom verplaatsen naar rijnummer
