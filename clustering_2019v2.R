@@ -168,3 +168,9 @@ ggsave(file.path("visualisations","cluster_plot_standardized.png"), plot = clust
 ggsave(file.path("visualisations","cluster_plot_normalized.png"), plot = cluster_plot_normalized, width = 23, height = 15, dpi = 300)
 
 
+# Voeg de clusternummers toe aan een nieuwe kolom
+# min_max_scaled_data_with_cluster <- new_df
+new_df$Cluster_minmax <- km.out_minmax$cluster
+new_df$Cluster_standardized <-km.out_standardized$cluster
+new_df$Cluster_normalized <- km.out_normalized$cluster
+
