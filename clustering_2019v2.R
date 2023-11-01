@@ -173,6 +173,7 @@ new_df$Cluster_minmax <- km.out_minmax$cluster
 new_df$Cluster_standardized <-km.out_standardized$cluster
 new_df$Cluster_normalized <- km.out_normalized$cluster
 
+# MinMax clusters
 # Creeër een subset df voor iedere cluster (1:10)
 cluster_subsets <- lapply(1:10, function(cluster_num) {
   subset(new_df, Cluster_minmax == cluster_num, select = c("Cluster_minmax"))
@@ -200,6 +201,70 @@ for (cluster_num in 1:10) {
   cat("\n")
   
   # Sla de subset op als CSV- bestand
-  write.csv(subset_df, file = file.path("data", paste0("minmax_cluster", cluster_num, "_subset.csv")), row.names = TRUE)
+  write.csv(subset_df, file = file.path("data", "cluster_numbers", "minmax", paste0("minmax_cluster", cluster_num, "_subset.csv")), row.names = TRUE)
 }
+
+# Standardized
+# Creeër een subset df voor iedere cluster (1:10)
+cluster_subsets <- lapply(1:10, function(cluster_num) {
+  subset(new_df, Cluster_standardized == cluster_num, select = c("Cluster_standardized"))
+})
+
+# Print de subsets van de clusters
+for (cluster_num in 1:10) {    
+  cat("Cluster_standardized", cluster_num, ":\n")
+  print(cluster_subsets[[cluster_num]])
+  cat("\n")
+}
+
+# Creeër een lijst om subsets van de df op te slaan 
+cluster_subsets <- list()
+
+# Creeër en sla de subset dataframes op voor de clusters 1:10
+for (cluster_num in 1:10) {
+  subset_df <- subset(new_df, Cluster_standardized == cluster_num, select = c( "Cluster_standardized"))
+  cluster_subsets[[cluster_num]] <- subset_df
+  colnames(subset_df)[0] <- "Gemeente"
+  
+  # Print en sla de subset op
+  cat("Cluster", cluster_num, ":\n")
+  print(subset_df)
+  cat("\n")
+  
+  # Sla de subset op als CSV- bestand
+  write.csv(subset_df, file = file.path("data", "cluster_numbers", "standardized", paste0("standardized_cluster", cluster_num, "_subset.csv")), row.names = TRUE)
+}
+
+# Normalized
+# Creeër een subset df voor iedere cluster (1:10)
+cluster_subsets <- lapply(1:10, function(cluster_num) {
+  subset(new_df, Cluster_normalized == cluster_num, select = c("Cluster_normalized"))
+})
+
+# Print de subsets van de clusters
+for (cluster_num in 1:10) {    
+  cat("Cluster_normalized", cluster_num, ":\n")
+  print(cluster_subsets[[cluster_num]])
+  cat("\n")
+}
+
+# Creeër een lijst om subsets van de df op te slaan 
+cluster_subsets <- list()
+
+# Creeër en sla de subset dataframes op voor de clusters 1:10
+for (cluster_num in 1:10) {
+  subset_df <- subset(new_df, Cluster_normalized == cluster_num, select = c( "Cluster_normalized"))
+  cluster_subsets[[cluster_num]] <- subset_df
+  colnames(subset_df)[0] <- "Gemeente"
+  
+  # Print en sla de subset op
+  cat("Cluster", cluster_num, ":\n")
+  print(subset_df)
+  cat("\n")
+  
+  # Sla de subset op als CSV- bestand
+  write.csv(subset_df, file = file.path("data", "cluster_numbers", "normalized", paste0("normalized_cluster", cluster_num, "_subset.csv")), row.names = TRUE)
+}
+
+
 
