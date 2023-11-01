@@ -94,7 +94,21 @@ for (i in 1:n_clusters) {
   wss[i] <- km.out_minmax$tot.withinss
 }
 
-# Scree plot
+# De verschillende aantallen clusters analyseren - standardized_data
+for (i in 1:n_clusters) {
+  # fit het model: km.out_standardized
+  km.out_standardized <- kmeans(standardized_data, centers = i, nstart = 20)
+  wss[i] <- km.out_standardized$tot.withinss
+}
+
+# De verschillende aantallen clusters analyseren - normalized_data
+for (i in 1:n_clusters) {
+  # fit het model: km.out_standardized
+  km.out_normalized <- kmeans(normalized_data, centers = i, nstart = 20)
+  wss[i] <- km.out_normalized$tot.withinss
+}
+
+# Scree plot minmax
 wss_df_minmax <- tibble(clusters = 1:n_clusters, wss = wss)
 
 scree_plot_minmax <- ggplot(wss_df_minmax, aes(x = clusters, y = wss, group = 1)) +
@@ -113,11 +127,41 @@ scree_plot_minmax +
     col = c(rep('#000000', n_clusters - 1), '#FF0000')
   )
 
-# Plot the 10 clusters -> smooth ellipse.type = "norm"
-cluster_plot_minmax <- fviz_cluster(km.out_minmax, data = min_max_scaled_data)
+# Scree plot standardized_data
+wss_df_standardized <- tibble(clusters = 1:n_clusters, wss = wss)
+
+scree_plot_standardized <- ggplot(wss_df_standardized, aes(x = clusters, y = wss, group = 1)) +
+  geom_point(size = 4) +
+  geom_line() +
+  scale_x_continuous(breaks = c(2, 4, 6, 8, 10)) +
+  xlab('Number of clusters')
+
+scree_plot_minmax
+
+# Add a horizontal dashed line for the WSS values
+scree_plot_standardized +
+  geom_hline(
+    yintercept = wss, 
+    linetype = 'dashed', 
+    col = c(rep('#000000', n_clusters - 1), '#FF0000')
+  )
+
+
+# Plot the 10 clusters -> smooth ellipse.type = "norm" - min_max_scaled_data
+cluster_plot_ <- fviz_cluster(km.out_minmax, data = min_max_scaled_data)
 cluster_plot_minmax
 
-# Cluster plot opslaan
+# Plot the 10 clusters -> smooth ellipse.type = "norm" - standardized_data
+cluster_plot_standardized <- fviz_cluster(km.out_standardized, data = standardized_data)
+cluster_plot_standardized
+
+# Plot the 10 clusters -> smooth ellipse.type = "norm" - normalized_data
+cluster_plot_normalized <- fviz_cluster(km.out_standardized, data = normalized_data)
+cluster_plot_normalized
+
+# Cluster plot(s) opslaan 
 ggsave(file.path("visualisations","cluster_plot_minmax.png"), plot = cluster_plot_minmax, width = 23, height = 15, dpi = 300)
+ggsave(file.path("visualisations","cluster_plot_standardized.png"), plot = cluster_plot_standardized, width = 23, height = 15, dpi = 300)
+ggsave(file.path("visualisations","cluster_plot_normalized.png"), plot = cluster_plot_normalized, width = 23, height = 15, dpi = 300)
 
 
