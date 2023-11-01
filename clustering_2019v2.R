@@ -149,7 +149,6 @@ scree_plot_standardized +
     col = c(rep('#000000', n_clusters - 1), '#FF0000')
   )
 
-
 # Plot the 10 clusters -> smooth ellipse.type = "norm" - min_max_scaled_data
 cluster_plot_ <- fviz_cluster(km.out_minmax, data = min_max_scaled_data)
 cluster_plot_minmax
@@ -173,4 +172,34 @@ ggsave(file.path("visualisations","cluster_plot_normalized.png"), plot = cluster
 new_df$Cluster_minmax <- km.out_minmax$cluster
 new_df$Cluster_standardized <-km.out_standardized$cluster
 new_df$Cluster_normalized <- km.out_normalized$cluster
+
+# Creeër een subset df voor iedere cluster (1:10)
+cluster_subsets <- lapply(1:10, function(cluster_num) {
+  subset(new_df, Cluster_minmax == cluster_num, select = c("Cluster_minmax"))
+})
+
+# Print de subsets van de clusters
+for (cluster_num in 1:10) {    
+  cat("Cluster_minmax", cluster_num, ":\n")
+  print(cluster_subsets[[cluster_num]])
+  cat("\n")
+}
+
+# Creeër een lijst om subsets van de df op te slaan 
+cluster_subsets <- list()
+
+# Creeër en sla de subset dataframes op voor de clusters 1:10
+for (cluster_num in 1:10) {
+  subset_df <- subset(new_df, Cluster_minmax == cluster_num, select = c( "Cluster_minmax"))
+  cluster_subsets[[cluster_num]] <- subset_df
+  colnames(subset_df)[0] <- "Gemeente"
+  
+  # Print en sla de subset op
+  cat("Cluster", cluster_num, ":\n")
+  print(subset_df)
+  cat("\n")
+  
+  # Sla de subset op als CSV- bestand
+  write.csv(subset_df, file = file.path("data", paste0("minmax_cluster", cluster_num, "_subset.csv")), row.names = TRUE)
+}
 
