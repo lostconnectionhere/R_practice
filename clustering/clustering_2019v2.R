@@ -266,5 +266,6 @@ for (cluster_num in 1:10) {
   write.csv(subset_df, file = file.path("data", "cluster_numbers", "normalized", paste0("normalized_cluster", cluster_num, "_subset.csv")), row.names = TRUE)
 }
 
+names(new_df)
 
-
+write.csv(new_df, "df.csv")
